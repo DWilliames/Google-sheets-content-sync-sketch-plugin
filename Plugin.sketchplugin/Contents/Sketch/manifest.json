@@ -1,0 +1,26 @@
+{
+  "name": "Google sheet content",
+  "description": "Lorem Ipsum",
+  "author": "David Williames",
+  "homepage": "https://github.com/DWilliames/sketch-plugin-template",
+  "version": 1.0,
+  "identifier": "com.davidwilliames.plugin",
+  "compatibleVersion": 39,
+  "bundleVersion": 1,
+  "commands": [
+    {
+      "name": "Import Content",
+      "identifier": "importContent",
+      "shortcut": "control i",
+      "script": "main.js",
+      "handler": "run",
+      "icon": "icons\/run.png",
+      "description": "Run plugin"
+    }
+  ],
+  "menu": {
+    "items": [
+      "importContent"
+    ]
+  }
+}
