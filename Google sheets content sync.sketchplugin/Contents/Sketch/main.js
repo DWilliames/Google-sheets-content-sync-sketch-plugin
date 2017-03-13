@@ -1,109 +1,42 @@
 @import 'defaults.js'
+@import 'utilities.js'
 
-var selection
-var doc
-var scriptFolder
-var scriptPath
-var app
-var manifestJSON
-
-var iconImage
-var sheetValues
-var url
+var selection, doc, scriptPath, scriptFolder, app
+var manifestJSON, iconImage, sheetValues
 
 // Setup variables based on the context
 function setup(context) {
-  doc = context.document
   selection = context.selection
-  iconImage = NSImage.alloc().initByReferencingFile(context.plugin.urlForResourceNamed("icons/icon.png").path())
-
+  doc = context.document
   scriptPath = context.scriptPath
   scriptFolder = scriptPath.stringByDeletingLastPathComponent()
   app = NSApplication.sharedApplication()
 
   manifestJSON = getJSONFromFile(scriptFolder + "/manifest.json")
+  iconImage = NSImage.alloc().initByReferencingFile(context.plugin.urlForResourceNamed("icon.png").path())
 
-  fetchDefaults()
-  url = defaults.url
+  fetchDefaults(doc.hash())
 
-  if (isTodayNewDay() && checkPluginUpdate()) {
-    var alert = NSAlert.alloc().init()
-    alert.setIcon(iconImage)
-  	alert.setMessageText("New Update available 🔥")
-  	alert.setInformativeText("There's a new update available for '" + manifestJSON.name + "'. Please download and install the new version.")
-  	alert.addButtonWithTitle("Download")
-    alert.addButtonWithTitle("Cancel")
-    if (alert.runModal() == '1000') {
-      NSWorkspace.sharedWorkspace().openURL(NSURL.URLWithString(manifestJSON.homepage))
-      return false
-    }
-  }
-
-  return true
+  // Return the opposite of if it was updated
+  return !updateIfNeeded()
 }
-
-function isTodayNewDay() {
-
-  var lastUpdateCheckDay = defaults.lastUpdateCheckDay
-  lastUpdateCheckDay = 0
-
-  var formatter = NSDateFormatter.alloc().init()
-  formatter.setDateStyle(NSDateFormatterShortStyle)
-  var today = formatter.stringFromDate(NSDate.date())
-
-  saveDefaults({
-    url: url,
-    lastUpdateCheckDay: today
-  })
-
-  if (lastUpdateCheckDay) {
-    return lastUpdateCheckDay != today
-  } else {
-    return true
-  }
-}
-
-function checkPluginUpdate() {
-  var newUpdateAvailable = false
-  try {
-    var response = getJSONFromURL('https://raw.githubusercontent.com/einancunlu/Checkpoints-Plugin-for-Sketch/master/Checkpoints.sketchplugin/Contents/Sketch/manifest.json')
-    if (response && response.version) {
-      if (response.version.toString() != manifestJSON.version.toString()) {
-          newUpdateAvailable = true
-      }
-    }
-  } catch (e) {
-    return false
-  }
-  return newUpdateAvailable
-}
-
-function getJSONFromFile(filePath) {
-  var data = NSData.dataWithContentsOfFile(filePath)
-  return NSJSONSerialization.JSONObjectWithData_options_error(data, 0, nil)
-}
-
-function getJSONFromURL(url) {
-  var request = NSURLRequest.requestWithURL(NSURL.URLWithString(url))
-  var response = NSURLConnection.sendSynchronousRequest_returningResponse_error(request, nil, nil)
-  return NSJSONSerialization.JSONObjectWithData_options_error(response, 0, nil)
-}
-
-
 
 // ****************************
-//   Plugin command handlers
+//   Plugin command handler
 // ****************************
 
 function run(context) {
+  // If the user opted to update the plugin, then return
   if (!setup(context)) {
     return
   }
 
+  // After presenting the options - if the user cancelled, then return
   if (showOptions() != '1000') {
     return
   }
 
+  // If the user didn't enter a valid URL, tell them, then exit
   var sheetId = validateURL()
   if (!sheetId) {
     var alert = NSAlert.alloc().init()
@@ -114,29 +47,35 @@ function run(context) {
     return alert.runModal()
   }
 
+  // Fetch all the values for the given URL
   fetchSheetValues(sheetId)
 
   if (sheetValues.length < 1)
     return
 
+  // Update the values for each page
   doc.pages().forEach(page => {
 
     var sheetTitle = valueFromName(page.name())
     var pageValues = valuesForSheet(sheetTitle)
 
+    // If no sheet title provided - just use the first sheet
     if (sheetTitle == '' || pageValues == null) {
       var firstSheet = sheetValues[0]
       pageValues = firstSheet.values
     }
 
     page.children().forEach(child => {
-      if (!child.isMemberOfClass(MSTextLayer))
+      // Only check text layers
+      if (!child.isMemberOfClass(MSTextLayer) || child.name().indexOf('#') < 0)
         return
 
       var nameFormat = formatName(child.name())
       var childName = nameFormat.lookupName
       var values = pageValues[childName]
 
+      // Set the value of the text layer accordingly
+      // Based on if it was given an index, otherwise return the first one
       if (values && values.length > 0) {
         var value = (values.length >= nameFormat.index) ? values[nameFormat.index - 1] : 'N/A'
         child.setStringValue(value == '' ? 'N/A' : value)
@@ -146,21 +85,27 @@ function run(context) {
     })
   })
 
-  saveDefaults({
-    url: url,
-    lastUpdateCheckDay: defaults.lastUpdateCheckDay
-  })
+  saveDefaults(doc.hash())
+
+  doc.showMessage("Content successfully synced! ⚡︎")
 
   doc.reloadInspector()
 }
 
 
+// **********************
+//   Helper methods
+// **********************
+
+// Validate whether the URL contains a valid sheet ID
+// Return the SheetID, or null
 function validateURL() {
   var regex = /(?:https?:\/\/)?docs\.google\.com\/spreadsheets\/d\/(.*)(\/)/g
-  var matches = regex.exec(url)
+  var matches = regex.exec(defaultsURL)
   return (matches && matches.length > 1) ? matches[1] : null
 }
 
+// Show the options to the user - to enter their url
 function showOptions() {
 
   var alert = NSAlert.alloc().init()
@@ -171,7 +116,7 @@ function showOptions() {
   alert.addButtonWithTitle("Cancel")
 
   var input = NSTextField.alloc().initWithFrame(NSMakeRect(0, 0, 300, 54))
-  input.setStringValue(url)
+  input.setStringValue(defaultsURL)
   input.setPlaceholderString('Google Sheets publish URL')
 
   alert.setAccessoryView(input)
@@ -179,11 +124,15 @@ function showOptions() {
 
   input.validateEditing()
 
-  url = input.stringValue()
+  defaultsURL = input.stringValue()
 
   return response
 }
 
+// Split the name up into a format
+// Based on the content after '#'
+// - lookupName is the value directly after '#', before a '.'
+// - index is any value after a '.' after '#'
 function formatName(name) {
   // TODO: portion — for carry over text
   var format = {
@@ -206,12 +155,14 @@ function formatName(name) {
   return format
 }
 
+// Get the text after '#'
+// Also remove spaces, and make it all lowercase
 function valueFromName(name) {
   var split = name.replace(/\s/g, '').toLowerCase().split('#')
   return (split.length > 1) ? split[1] : null
 }
 
-
+// Returns all the spreadsheet values for the sheet, based on the sheetName
 function valuesForSheet(sheetName) {
   if (!sheetName) {
     return null
@@ -221,26 +172,27 @@ function valuesForSheet(sheetName) {
     return sheet.title.replace(/\s/g, '').toLowerCase() == sheetName.replace(/\s/g, '').toLowerCase()
   })
 
-  if (sheet) {
-    return sheet.values
-  }
-
-  return null
+  return sheet ? sheet.values : null
 }
 
+// For the given Google Sheet ID, fetch all the values for all the sheets within it
 function fetchSheetValues(sheetID) {
   sheetValues = []
 
+  // Keep incrementing fo rth enext sheet, until no sheet is found
   for (var i = 1; true; i++) {
     var values = fetchValuesForPage(sheetID, i)
     if (!values) {
       break
     } else {
+      // Add the data to the sheetValues
       sheetValues.push(values)
     }
   }
 }
 
+// Fetch the values for a given page within a Google Sheet
+// Return the parse data
 function fetchValuesForPage(sheetID, pageNumber) {
   var queryURL = 'https://spreadsheets.google.com/feeds/list/' + sheetID + '/' + pageNumber + '/public/values?alt=json'
 
@@ -263,6 +215,7 @@ function fetchValuesForPage(sheetID, pageNumber) {
   }
 }
 
+// Parse the data to how we want it
 function parseData(data) {
   var values = {}
 
