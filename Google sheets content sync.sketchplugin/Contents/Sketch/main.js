@@ -87,7 +87,7 @@ function run(context) {
 
   saveDefaults(doc.hash())
 
-  doc.showMessage("Content successfully synced! ⚡︎")
+  doc.showMessage("Content successfully synced! ⚡️")
 
   doc.reloadInspector()
 }

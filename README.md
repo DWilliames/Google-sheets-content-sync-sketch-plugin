@@ -13,6 +13,12 @@ Edit and collaborate on your content in Google Sheets, then sync in back to your
 
 ## Usage
 
+### TL;DR
+1. Create a Google Sheet — enter titles across the top, and values directly below
+2. Publish it with `File > Publish to the web... > Publish`
+3. Name text layers appropriately — e.g. `text layer #title`
+4. Run the plugin — `control + i`
+
 ### 1. Create your Spreadsheet
 
 Create a new Google Spreadsheet (unfortunately Google Docs won't work with this.)
@@ -50,7 +56,7 @@ Spreadsheet Data | Sketch Layer list
 
 **Different Sheets**
 
-If you would like to tie the data to a specific sheet within the Google Spreadsheet, add the sheet name to your Sketch page, otherwise it will default to the first page. *(Note: Only one Google sheet, for a Ketch page)*
+If you would like to tie the data to a specific sheet within the Google Spreadsheet, add the sheet name to your Sketch page, otherwise it will default to the first page. *(Note: Only one Google sheet, per a Sketch page)*
 
 Spreadsheet Sheets | Sketch Page list
 :---:|:---:
@@ -61,7 +67,9 @@ Spreadsheet Sheets | Sketch Page list
 
 You can give multiple values to the same title, by default it will grab the first one.
 
-To specifically get a specific value — add the 'nth' one you want after a '.'. e.g. to get the 2nd title value a layer may be called `layer name #title.2`.
+To get a specific value — add the 'nth' one you want after a '.'
+
+e.g. to get the 2nd title value a layer may be called `layer name #title.2`.
 
 Spreadsheet Multiple values | Sketch Multiple values
 :---:|:---:
@@ -74,7 +82,7 @@ Spreadsheet Multiple values | Sketch Multiple values
 
 Then click `Import`. That's it! 🎉 The content should magically populate.
 
-Anytime you want to re-sync the values, run the plugin again/
+Anytime you want to re-sync the values, run the plugin again!
 
 
 ## Why make this plugin?

@@ -46,8 +46,7 @@ function isTodayNewDay() {
 function checkPluginUpdate() {
   var newUpdateAvailable = false
   try {
-    // TODO: Update with actual link
-    var response = getJSONFromURL('https://raw.githubusercontent.com/einancunlu/Checkpoints-Plugin-for-Sketch/master/Checkpoints.sketchplugin/Contents/Sketch/manifest.json')
+    var response = getJSONFromURL('https://raw.githubusercontent.com/DWilliames/Google-sheets-content-sync-sketch-plugin/master/Google%20sheets%20content%20sync.sketchplugin/Contents/Sketch/manifest.json')
     if (response && response.version) {
       if (response.version.toString() != manifestJSON.version.toString()) {
           newUpdateAvailable = true
