@@ -1,4 +1,5 @@
-# Google Sheets content sync — Sketch Plugin
+
+![Title](images/logo.png)
 
 <a href="https://www.sketchapp.com">
   <img width="160" height="41" src="images/sketch-badge.png" >
@@ -23,7 +24,7 @@ Edit and collaborate on your content in Google Sheets, then sync in back to your
 
 Create a new Google Spreadsheet (unfortunately Google Docs won't work with this.)
 
-Enter you content going horizontally, with the titles on the first line, and the values directly below. **It is very important that you do it this way**
+Enter your content going horizontally, with the titles on the first line, and the values directly below. **Note: It is very important that you do it this way**
 
 ![Layout example](images/layout.png)
 
@@ -84,6 +85,26 @@ Then click `Import`. That's it! 🎉 The content should magically populate.
 
 Anytime you want to re-sync the values, run the plugin again!
 
+
+## Working with Symbols
+
+**Note: Nested symbols are not yet supported**
+
+Symbols are great for creating an element that is used multiple times, but the content slightly differs. Which makes is a great candidate for this plugin.
+
+![Symbols before and after](images/Symbols_before_and_after.png)
+
+When using Symbols, make sure the layer names within the Symbol have a '#' followed by Google Sheets column title — same as explained above. So that the override label matches the column title.
+
+Spreadsheet Columns | Sketch Symbol Layer list
+:---:|:---:
+![Spreadsheet symbols](images/symbols_spreadsheet.png) | ![Symbols overrides](images/symbol_overrides.png)
+
+Then to make each Symbol instance refer to a different row in the spreadsheet, make sure the layer name for each Symbol instance has a '.' followed by the 'n'th row you want it to refer to. Like so...
+
+![Symbols layer list](images/symbols_layer_list.png)
+
+---
 
 ## Why make this plugin?
 

@@ -31,10 +31,38 @@ function run(context) {
     return
   }
 
-  // After presenting the options - if the user cancelled, then return
-  if (showOptions() != '1000') {
+  // Ask the user to update their URL, then sync the content
+  if (updateSheetURL())
+    syncContent()
+
+}
+
+function importContent(context) {
+  // If the user opted to update the plugin, then return
+  if (!setup(context)) {
     return
   }
+
+  // If there's currently no valid URL — ask the user to update it, then import it
+  if (!validateURL()) {
+    if (updateSheetURL())
+      syncContent()
+  } else {
+    syncContent()
+  }
+
+}
+
+function updateSheetURL() {
+  // After presenting the options - return whether the user clicked 'import' or not
+  return showOptions() == '1000'
+}
+
+// The actual work!!
+// Fetch the content from the Sheets URL
+// Update the values accordingly
+function syncContent() {
+  print('Importing content from: ' + defaultsURL)
 
   // If the user didn't enter a valid URL, tell them, then exit
   var sheetId = validateURL()
@@ -66,9 +94,47 @@ function run(context) {
     }
 
     page.children().forEach(child => {
+      if (child.isMemberOfClass(MSSymbolInstance)) {
+
+        // Store new overrides that need to be made
+        var overrides = {}
+
+        child.symbolMaster().children().forEach(symbolLayer => {
+          // Ignore layers that are not text layers
+          // Only include layers that have a '#' in the name
+          if (!symbolLayer.isMemberOfClass(MSTextLayer) || symbolLayer.name().indexOf('#') < 0)
+            return
+
+          var nameFormat = formatName(symbolLayer.name())
+          var childName = nameFormat.lookupName
+          var values = pageValues[childName]
+
+          // Get the index from the name of the Symbol instance. e.g. '.3'
+          var instanceIndex = indexFromName(child.name())
+          // Set the overrides to match the index of the instance name
+          if (instanceIndex && instanceIndex != nameFormat.index) {
+            nameFormat.index = instanceIndex
+          }
+
+          // Set the value of the text layer accordingly
+          // Based on if it was given an index, otherwise return the first one
+          if (values && values.length > 0) {
+            var value = (values.length >= nameFormat.index) ? values[nameFormat.index - 1] : 'N/A'
+            overrides[symbolLayer.objectID()] = value == '' ? 'N/A' : value
+          } else {
+            overrides[symbolLayer.objectID()] = 'N/A'
+          }
+        })
+
+        // Apply the new overrides
+        child.addOverrides_ancestorIDs(overrides, nil)
+      }
+
       // Only check text layers
+      // Only include layers that have a '#' in the name
       if (!child.isMemberOfClass(MSTextLayer) || child.name().indexOf('#') < 0)
         return
+
 
       var nameFormat = formatName(child.name())
       var childName = nameFormat.lookupName
@@ -87,7 +153,7 @@ function run(context) {
 
   saveDefaults(doc.hash())
 
-  doc.showMessage("Content successfully synced! ⚡️")
+  doc.showMessage("Content successfully imported! ⚡️")
 
   doc.reloadInspector()
 }
@@ -159,6 +225,13 @@ function formatName(name) {
 // Also remove spaces, and make it all lowercase
 function valueFromName(name) {
   var split = name.replace(/\s/g, '').toLowerCase().split('#')
+  return (split.length > 1) ? split[1] : null
+}
+
+// Get the text after '.'
+// Also remove spaces, and make it all lowercase
+function indexFromName(name) {
+  var split = name.replace(/\s/g, '').toLowerCase().split('.')
   return (split.length > 1) ? split[1] : null
 }
 

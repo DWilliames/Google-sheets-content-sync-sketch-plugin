@@ -3,23 +3,35 @@
   "description": "Sync content within a Google Sheets document, to text layers — based on their names",
   "author": "David Williames",
   "homepage": "https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin",
-  "version": 1.0,
+  "version": 1.1,
   "identifier": "com.davidwilliames.sketch-plugins.google-sheets-content-sync",
   "compatibleVersion": 39,
   "bundleVersion": 1,
+  "appcast": "https://api.sketchpacks.com/v1/plugins/com.davidwilliames.sketch-plugins.google-sheets-content-sync/appcast",
   "commands": [
     {
-      "name": "Import Content",
+      "name": "Import content",
       "identifier": "importContent",
       "shortcut": "control i",
       "script": "main.js",
-      "handler": "run",
+      "handler": "importContent",
       "icon": "icons\/icon-small.png",
       "description": "Import content from a Google Sheets document."
+    },
+    {
+      "name": "Link Google Sheet",
+      "identifier": "linkSheet",
+      "shortcut": "shift control i",
+      "script": "main.js",
+      "handler": "run",
+      "icon": "icons\/icon-small.png",
+      "description": "Set the Google Sheets URL and import content."
     }
   ],
   "menu": {
     "items": [
+      "linkSheet",
+      "-",
       "importContent"
     ]
   }
