@@ -3,7 +3,7 @@
   "description": "Sync content within a Google Sheets document, to text layers — based on their names",
   "author": "David Williames",
   "homepage": "https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin",
-  "version": 1.1,
+  "version": "1.1.1",
   "identifier": "com.davidwilliames.sketch-plugins.google-sheets-content-sync",
   "compatibleVersion": 39,
   "bundleVersion": 1,
