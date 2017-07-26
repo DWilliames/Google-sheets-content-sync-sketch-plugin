@@ -2,7 +2,7 @@
 @import 'utilities.js'
 
 var selection, doc, scriptPath, scriptFolder, app
-var manifestJSON, iconImage, sheetValues
+var iconImage, sheetValues
 
 // Setup variables based on the context
 function setup(context) {
@@ -12,13 +12,9 @@ function setup(context) {
   scriptFolder = scriptPath.stringByDeletingLastPathComponent()
   app = NSApplication.sharedApplication()
 
-  manifestJSON = getJSONFromFile(scriptFolder + "/manifest.json")
   iconImage = NSImage.alloc().initByReferencingFile(context.plugin.urlForResourceNamed("icon.png").path())
 
   fetchDefaults(doc.hash())
-
-  // Return the opposite of if it was updated
-  return !updateIfNeeded()
 }
 
 // ****************************
@@ -26,22 +22,15 @@ function setup(context) {
 // ****************************
 
 function run(context) {
-  // If the user opted to update the plugin, then return
-  if (!setup(context)) {
-    return
-  }
+  setup(context)
 
   // Ask the user to update their URL, then sync the content
   if (updateSheetURL())
     syncContent()
-
 }
 
 function importContent(context) {
-  // If the user opted to update the plugin, then return
-  if (!setup(context)) {
-    return
-  }
+  setup(context)
 
   // If there's currently no valid URL — ask the user to update it, then import it
   if (!validateURL()) {
@@ -50,7 +39,6 @@ function importContent(context) {
   } else {
     syncContent()
   }
-
 }
 
 function updateSheetURL() {
