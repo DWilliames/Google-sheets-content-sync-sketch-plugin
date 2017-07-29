@@ -2,7 +2,7 @@
 @import 'utilities.js'
 
 var selection, doc, scriptPath, scriptFolder, app
-var manifestJSON, iconImage, sheetValues
+var iconImage, sheetValues
 
 // Setup variables based on the context
 function setup(context) {
@@ -12,13 +12,9 @@ function setup(context) {
   scriptFolder = scriptPath.stringByDeletingLastPathComponent()
   app = NSApplication.sharedApplication()
 
-  manifestJSON = getJSONFromFile(scriptFolder + "/manifest.json")
   iconImage = NSImage.alloc().initByReferencingFile(context.plugin.urlForResourceNamed("icon.png").path())
 
   fetchDefaults(doc.hash())
-
-  // Return the opposite of if it was updated
-  return !updateIfNeeded()
 }
 
 // ****************************
@@ -26,22 +22,15 @@ function setup(context) {
 // ****************************
 
 function run(context) {
-  // If the user opted to update the plugin, then return
-  if (!setup(context)) {
-    return
-  }
+  setup(context)
 
   // Ask the user to update their URL, then sync the content
   if (updateSheetURL())
     syncContent()
-
 }
 
 function importContent(context) {
-  // If the user opted to update the plugin, then return
-  if (!setup(context)) {
-    return
-  }
+  setup(context)
 
   // If there's currently no valid URL — ask the user to update it, then import it
   if (!validateURL()) {
@@ -50,7 +39,6 @@ function importContent(context) {
   } else {
     syncContent()
   }
-
 }
 
 function updateSheetURL() {
@@ -82,7 +70,7 @@ function syncContent() {
     return
 
   // Update the values for each page
-  doc.pages().forEach(page => {
+  doc.pages().forEach(function(page) {
 
     var sheetTitle = valueFromName(page.name())
     var pageValues = valuesForSheet(sheetTitle)
@@ -93,13 +81,13 @@ function syncContent() {
       pageValues = firstSheet.values
     }
 
-    page.children().forEach(child => {
+    page.children().forEach(function(child) {
       if (child.isMemberOfClass(MSSymbolInstance)) {
 
         // Store new overrides that need to be made
         var overrides = {}
 
-        child.symbolMaster().children().forEach(symbolLayer => {
+        child.symbolMaster().children().forEach(function(symbolLayer) {
           // Ignore layers that are not text layers
           // Only include layers that have a '#' in the name
           if (!symbolLayer.isMemberOfClass(MSTextLayer) || symbolLayer.name().indexOf('#') < 0)
@@ -241,7 +229,7 @@ function valuesForSheet(sheetName) {
     return null
   }
 
-  var sheet = sheetValues.find(sheet => {
+  var sheet = sheetValues.find(function(sheet) {
     return sheet.title.replace(/\s/g, '').toLowerCase() == sheetName.replace(/\s/g, '').toLowerCase()
   })
 
@@ -292,10 +280,10 @@ function fetchValuesForPage(sheetID, pageNumber) {
 function parseData(data) {
   var values = {}
 
-  data.feed.entry.forEach(entry => {
-    Object.keys(entry).filter(key => {
+  data.feed.entry.forEach(function(entry) {
+    Object.keys(entry).filter(function(key) {
       return key.indexOf('gsx$') == 0
-    }).forEach(key => {
+    }).forEach(function(key) {
       var newKey = key.substring(4)
       if (!(values.hasOwnProperty(newKey))) {
         values[newKey] = []
