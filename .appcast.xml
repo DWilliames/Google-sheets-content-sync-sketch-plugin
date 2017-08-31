@@ -15,7 +15,7 @@
           </ul>
         ]]>
       </description>
-      <enclosure url="https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin/releases/download/v1.1.2/Google_sheets_content_sync.sketchplugin.zip" sparkle:version="1.1.2" />
+      <enclosure url="https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin/releases/download/v1.1.2/Google.sheets.content.sync.sketchplugin.zip" sparkle:version="1.1.2" />
     </item>
   </channel>
 </rss>
