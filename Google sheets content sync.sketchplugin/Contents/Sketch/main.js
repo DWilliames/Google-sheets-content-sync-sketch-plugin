@@ -54,11 +54,21 @@ function syncContent() {
 
   // If the user didn't enter a valid URL, tell them, then exit
   var sheetId = validateURL()
+
   if (!sheetId) {
     var alert = NSAlert.alloc().init()
     alert.setIcon(iconImage)
   	alert.setMessageText("Invalid Google Sheet URL")
   	alert.setInformativeText("The URL you entered wasn't valid")
+  	alert.addButtonWithTitle("Ok")
+    return alert.runModal()
+
+  } else if (sheetId == "e") {
+
+    var alert = NSAlert.alloc().init()
+    alert.setIcon(iconImage)
+  	alert.setMessageText("Invalid Google Sheet URL")
+  	alert.setInformativeText("It looks like you've used the URL generated on the 'Publish to the web' screen. \n\nWhilst it is important that you do 'publish' the spreadsheet to the web, you need to use the URL for the spreadsheet that is in the browser address bar instead.")
   	alert.addButtonWithTitle("Ok")
     return alert.runModal()
   }
@@ -154,7 +164,7 @@ function syncContent() {
 // Validate whether the URL contains a valid sheet ID
 // Return the SheetID, or null
 function validateURL() {
-  var regex = /(?:https?:\/\/)?docs\.google\.com\/spreadsheets\/d\/(.*)(\/)/g
+  var regex = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/g
   var matches = regex.exec(defaultsURL)
   return (matches && matches.length > 1) ? matches[1] : null
 }
@@ -165,7 +175,7 @@ function showOptions() {
   var alert = NSAlert.alloc().init()
   alert.setIcon(iconImage)
   alert.setMessageText("Import data from Google Sheet")
-  alert.setInformativeText("In your spreadhseet;\nGo 'File > Publish to the web...' \nClick 'Publish' and copy the link from there")
+  alert.setInformativeText("In your spreadsheet;\nGo 'File > Publish to the web...' \nClick 'Publish' and then copy the URL from the address bar.\n\nNOTE: Do not use the URL on the 'Publish to the web' page — use the URL from the browser address bar.")
   alert.addButtonWithTitle("Import")
   alert.addButtonWithTitle("Cancel")
 
@@ -271,7 +281,7 @@ function fetchValuesForPage(sheetID, pageNumber) {
     var data = JSON.parse(dataString)
     return parseData(data)
   } catch(e) {
-    // Page doesn't exist
+    doc.showMessage("Failed to process the document data correctly")
     return null
   }
 }
