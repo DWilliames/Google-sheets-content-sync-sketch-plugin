@@ -79,7 +79,7 @@ Spreadsheet Multiple values | Sketch Multiple values
 
 ### 4. Run the plugin
 
-<kbd>⌃ control</kbd> + <kbd>i</kbd> to **import** the values from a spreadsheet. A popup alert will appear, allowing you to enter the URL of your Google Sheet.
+<kbd>⌃ control</kbd> + <kbd>i</kbd> to **import** the values from a spreadsheet. A popup alert will appear, allowing you to enter the URL of your Google Sheet. **Important: Use the URL of your Google Sheet in the browser address bar, DO NOT use the URL generated after clicking 'Publish to the web'.**
 
 Then click `Import`. That's it! 🎉 The content should magically populate.
 
