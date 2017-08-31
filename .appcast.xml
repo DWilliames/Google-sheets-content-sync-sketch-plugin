@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"  xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Google Sheets content sync</title>
+    <link>https://raw.githubusercontent.com/DWilliames/Google-sheets-content-sync-sketch-plugin/master/.appcast.xml</link>
+    <description>Sync content within a Google Sheets document, to text layers — based on their names</description>
+    <language>en</language>
+    <item>
+      <title>Version 1.1.2</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li>Added additional URL validation</li>
+            <li>Added support for Sketch plugin updater</li>
+          </ul>
+        ]]>
+      </description>
+      <enclosure url="https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin/releases/download/v1.1.2/Google_sheets_content_sync.sketchplugin.zip" sparkle:version="1.1.2" />
+    </item>
+  </channel>
+</rss>
