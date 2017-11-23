@@ -20,6 +20,8 @@ Edit and collaborate on your content in Google Sheets, then sync in back to your
 3. Name text layers appropriately — e.g. `text layer #title`
 4. Run the plugin — `control + i`
 
+----
+
 ### 1. Create your Spreadsheet
 
 Create a new Google Spreadsheet (unfortunately Google Docs won't work with this.)
@@ -38,13 +40,13 @@ Do this by going `File > Publish to the web... > Publish`
 ![Publish example](images/publish-demo.gif)
 
 
-### 3. Name your text layers
+### 3. Name your layers
 
-Now that the spreadsheet is accessible — how do you tie specific values to text layers?
+Now that the spreadsheet is accessible — how do you tie specific values to your layers?
 
 **It all comes down to how you name your layers**
 
-In the name of a text layer, add a '#' followed by the title in the spreadsheet.
+In the name of a layer, add a '#' followed by the title in the spreadsheet.
 
 For example: to tie the value of 'title' to a Text Layer, give it a name like `#title`
 
@@ -53,6 +55,10 @@ Spreadsheet Data | Sketch Layer list
 ![Spreadsheet Data](images/spreadsheet-example.png) | ![Sketch Layer list](images/sketch-name-example.png)
 
 > It is not case-sensitive, and will ignore spaces — so `text #anothertitle` will still get the value for `Another Title`, you can also have other naming before the '#'. So `layer name #title` and `#title` would both work equally.
+
+**🌄 Using images**
+
+It is also possible to link images to shape layers. Simply tie in the image name into the name of the Shape layer, 'e.g.' `Profile pic #avatar`; then in your Google Sheet, add an image URL as the value.
 
 
 **Different Sheets**
@@ -76,6 +82,8 @@ Spreadsheet Multiple values | Sketch Multiple values
 :---:|:---:
 ![Spreadsheet multiple values](images/spreadsheet-multiple-values-example.png) | ![Sketch multiple values](images/sketch-multiple-values-example.png)
 
+It's also possible to randomise which value is used. Instead of using a number such as `layer name #title.2` use an 'x' or 'n' — `layer name #title.n` or `layer name #title.x`.
+
 
 ### 4. Run the plugin
 
@@ -88,7 +96,7 @@ Anytime you want to re-sync the values, run the plugin again!
 
 ## Working with Symbols
 
-**Note: Nested symbols are not yet supported**
+**⚠️ Note: Nested symbols are not yet supported**
 
 Symbols are great for creating an element that is used multiple times, but the content slightly differs. Which makes is a great candidate for this plugin.
 
