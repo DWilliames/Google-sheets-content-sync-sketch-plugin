@@ -17,5 +17,19 @@
       </description>
       <enclosure url="https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin/releases/download/v1.1.2/Google_sheets_content_sync.sketchplugin.zip" sparkle:version="1.1.2" />
     </item>
+    <item>
+      <title>Version 1.1.2</title>
+      <description>
+        <![CDATA[
+          <ul>
+            <li>Now it should save your Sheets URL specific to each document</li>
+            <li>Added support for symbols in Sketch 48</li>
+            <li>Now you can use image URLs (even for symbols)</li>
+            <li>Added ability to randomise the item number/li>
+          </ul>
+        ]]>
+      </description>
+      <enclosure url="https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin/releases/download/v1.2/Google_sheets_content_sync.sketchplugin.zip" sparkle:version="1.2" />
+    </item>
   </channel>
 </rss>

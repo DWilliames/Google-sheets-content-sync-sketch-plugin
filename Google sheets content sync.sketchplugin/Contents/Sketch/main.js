@@ -1,8 +1,12 @@
-@import 'defaults.js'
 @import 'utilities.js'
 
 var selection, doc, scriptPath, scriptFolder, app
 var iconImage, sheetValues
+
+// Saving and receiving document URL
+var docData, command, pluginIdentifier, url
+
+var appVersion, plugin
 
 // Setup variables based on the context
 function setup(context) {
@@ -11,10 +15,22 @@ function setup(context) {
   scriptPath = context.scriptPath
   scriptFolder = scriptPath.stringByDeletingLastPathComponent()
   app = NSApplication.sharedApplication()
+  plugin = context.plugin
 
   iconImage = NSImage.alloc().initByReferencingFile(context.plugin.urlForResourceNamed("icon.png").path())
 
-  fetchDefaults(doc.hash())
+  appVersion = MSApplicationMetadata.metadata().appVersion
+
+  docData = context.document.documentData()
+  command = context.command;
+
+  pluginIdentifier = context.plugin.identifier()
+
+  url = command.valueForKey_onLayer_forPluginIdentifier('docURL', docData, pluginIdentifier)
+  if (!url) {
+    url = ''
+  }
+
 }
 
 // ****************************
@@ -50,7 +66,8 @@ function updateSheetURL() {
 // Fetch the content from the Sheets URL
 // Update the values accordingly
 function syncContent() {
-  print('Importing content from: ' + defaultsURL)
+
+  print('Importing content from: ' + url)
 
   // If the user didn't enter a valid URL, tell them, then exit
   var sheetId = validateURL()
@@ -97,11 +114,26 @@ function syncContent() {
         // Store new overrides that need to be made
         var overrides = {}
 
+
         child.symbolMaster().children().forEach(function(symbolLayer) {
-          // Ignore layers that are not text layers
+          // Ignore layers that are not text layers or shapes
           // Only include layers that have a '#' in the name
-          if (!symbolLayer.isMemberOfClass(MSTextLayer) || symbolLayer.name().indexOf('#') < 0)
+          if (!(symbolLayer.isMemberOfClass(MSTextLayer) || symbolLayer.isMemberOfClass(MSShapeGroup)) || symbolLayer.name().indexOf('#') < 0) {
             return
+          }
+
+
+          var objectID = symbolLayer.objectID().toString()
+          var existingOverrides = child.overrides()
+          if (existingOverrides == null) {
+            // no overrides exist, add one
+            child.overrides = { objectID : "overrideText"}
+            existingOverrides = child.overrides()
+          }
+
+          // get the existing overrides and create a mutable copy
+          var mutableOverrides = NSMutableDictionary.dictionaryWithDictionary(existingOverrides)
+          mutableOverrides.setObject_forKey(NSMutableDictionary.dictionaryWithDictionary(existingOverrides.objectForKey(0)),0)
 
           var nameFormat = formatName(symbolLayer.name())
           var childName = nameFormat.lookupName
@@ -114,23 +146,43 @@ function syncContent() {
             nameFormat.index = instanceIndex
           }
 
+          var index = nameFormat.index.toString()
+          if (index.toLowerCase() === 'n' || index.toLowerCase() === 'x') {
+            index = Math.floor(Math.random() * values.length) + 1
+          } else {
+            index = parseInt(index)
+          }
+
+          // If there's no value associated, skip it
+          if (!values || values.length < 1) {
+            return
+          }
+
           // Set the value of the text layer accordingly
           // Based on if it was given an index, otherwise return the first one
-          if (values && values.length > 0) {
-            var value = (values.length >= nameFormat.index) ? values[nameFormat.index - 1] : 'N/A'
-            overrides[symbolLayer.objectID()] = value == '' ? 'N/A' : value
-          } else {
-            overrides[symbolLayer.objectID()] = 'N/A'
-          }
-        })
+          var value = (values.length >= index) ? values[index - 1] : ''
+          var textValue = (value == '' ? 'N/A' : value)
 
-        // Apply the new overrides
-        child.addOverrides_ancestorIDs(overrides, nil)
+          if (symbolLayer.isMemberOfClass(MSTextLayer)) {
+            mutableOverrides.setObject_forKey(textValue, objectID)
+
+          } else if (symbolLayer.isMemberOfClass(MSShapeGroup)) {
+            var imageURL = imageURLFromValue(value)
+            if (imageURL) {
+              var imageData = getImageDataFromURL(imageURL)
+              mutableOverrides.setObject_forKey(imageData, objectID)
+            }
+
+          }
+
+          child.overrides = mutableOverrides
+
+        })
       }
 
-      // Only check text layers
+      // Only check text layers or shape layers
       // Only include layers that have a '#' in the name
-      if (!child.isMemberOfClass(MSTextLayer) || child.name().indexOf('#') < 0)
+      if (!(child.isMemberOfClass(MSTextLayer) || child.isMemberOfClass(MSShapeGroup)) || child.name().indexOf('#') < 0)
         return
 
 
@@ -138,18 +190,38 @@ function syncContent() {
       var childName = nameFormat.lookupName
       var values = pageValues[childName]
 
+      // If there's no value associated, skip it
+      if (!values || values.length < 1) {
+        return
+      }
+
+      var index = nameFormat.index.toString()
+      if (index.toLowerCase() === 'n' || index.toLowerCase() === 'x') {
+        index = Math.floor(Math.random() * values.length) + 1
+      } else {
+        index = parseInt(index)
+      }
+
       // Set the value of the text layer accordingly
       // Based on if it was given an index, otherwise return the first one
-      if (values && values.length > 0) {
-        var value = (values.length >= nameFormat.index) ? values[nameFormat.index - 1] : 'N/A'
-        child.setStringValue(value == '' ? 'N/A' : value)
-      } else {
-        child.setStringValue('N/A')
+      var value = (values.length >= index) ? values[index - 1] : ''
+      var textValue = (value == '' ? 'N/A' : value)
+
+      if (child.isMemberOfClass(MSTextLayer)) {
+        child.setStringValue(textValue)
+      } else if (child.isMemberOfClass(MSShapeGroup)) {
+        // Get an image URL for the shape
+        var imageURL = imageURLFromValue(value)
+        if (imageURL) {
+          var imageData = getImageDataFromURL(imageURL)
+          fillLayerWithImageData(child, imageData)
+        }
       }
     })
   })
 
-  saveDefaults(doc.hash())
+
+  command.setValue_forKey_onLayer_forPluginIdentifier(url, 'docURL', docData, pluginIdentifier)
 
   doc.showMessage("Content successfully imported! ⚡️")
 
@@ -164,9 +236,57 @@ function syncContent() {
 // Validate whether the URL contains a valid sheet ID
 // Return the SheetID, or null
 function validateURL() {
+  if (url === '') {
+    return null
+  }
+
   var regex = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/g
-  var matches = regex.exec(defaultsURL)
+  var matches = regex.exec(url)
   return (matches && matches.length > 1) ? matches[1] : null
+}
+
+// Validate if there's a URL for the image as the value in the sheet
+function imageURLFromValue(value) {
+  if (value === '') {
+    return null
+  }
+
+  var regex = /(https?:\/\/.*\.(?:png|jpg|jpeg))/i
+  var matches = regex.exec(value)
+  return (matches && matches.length > 1) ? matches[1] : null
+}
+
+// Downloads an image from a URL and returns it as a NSImageData
+function getImageDataFromURL(url) {
+
+  var request = NSURLRequest.requestWithURL(NSURL.URLWithString(url))
+  var data = NSURLConnection.sendSynchronousRequest_returningResponse_error(request, null, null)
+
+  var image
+
+  if (!data){
+    print('Error fetching image')
+    doc.showMessage("Error in fetching image URL.")
+    image = NSImage.alloc().initByReferencingFile(plugin.urlForResourceNamed("Placeholder.png").path())
+  } else {
+    image = NSImage.alloc().initWithData(data)
+  }
+
+
+  if (isCurrentVersionBefore('47')) {
+      return MSImageData.alloc().initWithImage_convertColorSpace(image, false)
+  }
+
+  return MSImageData.alloc().initWithImage(image)
+}
+
+// Changes the fill of a layer to be the NSImageData passed in
+function fillLayerWithImageData(layer, imageData) {
+  var fill = layer.style().fills().firstObject()
+
+  fill.setFillType(4)
+  fill.setImage(imageData)
+  fill.setPatternFillType(1)
 }
 
 // Show the options to the user - to enter their url
@@ -180,7 +300,7 @@ function showOptions() {
   alert.addButtonWithTitle("Cancel")
 
   var input = NSTextField.alloc().initWithFrame(NSMakeRect(0, 0, 300, 54))
-  input.setStringValue(defaultsURL)
+  input.setStringValue(url)
   input.setPlaceholderString('Google Sheets publish URL')
 
   alert.setAccessoryView(input)
@@ -188,7 +308,7 @@ function showOptions() {
 
   input.validateEditing()
 
-  defaultsURL = input.stringValue()
+  url = input.stringValue()
 
   return response
 }
@@ -212,7 +332,7 @@ function formatName(name) {
 
   split = split[1].split('.')
   if (split.length > 1) {
-    format.index = parseInt(split[1])
+    format.index = split[1]
   }
   format.lookupName = split[0]
 
@@ -311,4 +431,23 @@ function parseData(data) {
     title: data.feed.title.$t,
     values: values
   }
+}
+
+
+function compareVersion(a, b) {
+  var i, cmp, len, re = /(\.0)+[^\.]*$/;
+  a = (a + '').replace(re, '').split('.');
+  b = (b + '').replace(re, '').split('.');
+  len = Math.min(a.length, b.length);
+  for( i = 0; i < len; i++ ) {
+    cmp = parseInt(a[i], 10) - parseInt(b[i], 10);
+    if( cmp !== 0 ) {
+      return cmp;
+    }
+  }
+  return a.length - b.length;
+}
+
+function isCurrentVersionBefore(version) {
+  return compareVersion(appVersion, version) < 0
 }
