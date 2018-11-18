@@ -30,6 +30,10 @@
         ]]>
       </description>
       <enclosure url="https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin/releases/download/v1.2/Google.sheets.content.sync.sketchplugin.zip" sparkle:version="1.2" />
+      <title>Version 1.3</title>
+      <description>
+      </description>
+      <enclosure url="https://github.com/DWilliames/Google-sheets-content-sync-sketch-plugin/releases/download/v1.3/Google.sheets.content.sync.sketchplugin.zip" sparkle:version="1.3" />
     </item>
   </channel>
 </rss>
