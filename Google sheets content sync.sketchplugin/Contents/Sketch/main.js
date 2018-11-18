@@ -118,7 +118,7 @@ function syncContent() {
         child.symbolMaster().children().forEach(function(symbolLayer) {
           // Ignore layers that are not text layers or shapes
           // Only include layers that have a '#' in the name
-          if (!(symbolLayer.isMemberOfClass(MSTextLayer) || symbolLayer.isMemberOfClass(MSShapeGroup)) || symbolLayer.name().indexOf('#') < 0) {
+          if (!(symbolLayer.isMemberOfClass(MSTextLayer) || canLayerHaveFill(symbolLayer)) || symbolLayer.name().indexOf('#') < 0) {
             return
           }
 
@@ -166,7 +166,7 @@ function syncContent() {
           if (symbolLayer.isMemberOfClass(MSTextLayer)) {
             mutableOverrides.setObject_forKey(textValue, objectID)
 
-          } else if (symbolLayer.isMemberOfClass(MSShapeGroup)) {
+          } else if (canLayerHaveFill(symbolLayer)) {
             var imageURL = imageURLFromValue(value)
             if (imageURL) {
               var imageData = getImageDataFromURL(imageURL)
@@ -182,7 +182,7 @@ function syncContent() {
 
       // Only check text layers or shape layers
       // Only include layers that have a '#' in the name
-      if (!(child.isMemberOfClass(MSTextLayer) || child.isMemberOfClass(MSShapeGroup)) || child.name().indexOf('#') < 0)
+      if (!(child.isMemberOfClass(MSTextLayer) || canLayerHaveFill(child)) || child.name().indexOf('#') < 0)
         return
 
 
@@ -209,7 +209,7 @@ function syncContent() {
 
       if (child.isMemberOfClass(MSTextLayer)) {
         child.setStringValue(textValue)
-      } else if (child.isMemberOfClass(MSShapeGroup)) {
+      } else if (canLayerHaveFill(child)) {
         // Get an image URL for the shape
         var imageURL = imageURLFromValue(value)
         if (imageURL) {
@@ -450,4 +450,12 @@ function compareVersion(a, b) {
 
 function isCurrentVersionBefore(version) {
   return compareVersion(appVersion, version) < 0
+}
+
+function canLayerHaveFill(layer) {
+  if (isCurrentVersionBefore("52")) {
+    return layer.isMemberOfClass(MSShapeGroup)
+  } else {
+    return layer.isKindOfClass(MSShapePathLayer)
+  }
 }
