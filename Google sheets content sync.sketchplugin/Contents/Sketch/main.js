@@ -75,18 +75,18 @@ function syncContent() {
   if (!sheetId) {
     var alert = NSAlert.alloc().init()
     alert.setIcon(iconImage)
-  	alert.setMessageText("Invalid Google Sheet URL")
-  	alert.setInformativeText("The URL you entered wasn't valid")
-  	alert.addButtonWithTitle("Ok")
+    alert.setMessageText("Invalid Google Sheet URL")
+    alert.setInformativeText("The URL you entered wasn't valid")
+    alert.addButtonWithTitle("Ok")
     return alert.runModal()
 
   } else if (sheetId == "e") {
 
     var alert = NSAlert.alloc().init()
     alert.setIcon(iconImage)
-  	alert.setMessageText("Invalid Google Sheet URL")
-  	alert.setInformativeText("It looks like you've used the URL generated on the 'Publish to the web' screen. \n\nWhilst it is important that you do 'publish' the spreadsheet to the web, you need to use the URL for the spreadsheet that is in the browser address bar instead.")
-  	alert.addButtonWithTitle("Ok")
+    alert.setMessageText("Invalid Google Sheet URL")
+    alert.setInformativeText("It looks like you've used the URL generated on the 'Publish to the web' screen. \n\nWhilst it is important that you do 'publish' the spreadsheet to the web, you need to use the URL for the spreadsheet that is in the browser address bar instead.")
+    alert.addButtonWithTitle("Ok")
     return alert.runModal()
   }
 
@@ -97,7 +97,7 @@ function syncContent() {
     return
 
   // Update the values for each page
-  doc.pages().forEach(function(page) {
+  doc.pages().forEach(function (page) {
 
     var sheetTitle = valueFromName(page.name())
     var pageValues = valuesForSheet(sheetTitle)
@@ -108,14 +108,14 @@ function syncContent() {
       pageValues = firstSheet.values
     }
 
-    page.children().forEach(function(child) {
+    page.children().forEach(function (child) {
       if (child.isMemberOfClass(MSSymbolInstance)) {
 
         // Store new overrides that need to be made
         var overrides = {}
 
 
-        child.symbolMaster().children().forEach(function(symbolLayer) {
+        child.symbolMaster().children().forEach(function (symbolLayer) {
           // Ignore layers that are not text layers or shapes
           // Only include layers that have a '#' in the name
           if (!(symbolLayer.isMemberOfClass(MSTextLayer) || canLayerHaveFill(symbolLayer)) || symbolLayer.name().indexOf('#') < 0) {
@@ -127,13 +127,13 @@ function syncContent() {
           var existingOverrides = child.overrides()
           if (existingOverrides == null) {
             // no overrides exist, add one
-            child.overrides = { objectID : "overrideText"}
+            child.overrides = { objectID: "overrideText" }
             existingOverrides = child.overrides()
           }
 
           // get the existing overrides and create a mutable copy
           var mutableOverrides = NSMutableDictionary.dictionaryWithDictionary(existingOverrides)
-          mutableOverrides.setObject_forKey(NSMutableDictionary.dictionaryWithDictionary(existingOverrides.objectForKey(0)),0)
+          mutableOverrides.setObject_forKey(NSMutableDictionary.dictionaryWithDictionary(existingOverrides.objectForKey(0)), 0)
 
           var nameFormat = formatName(symbolLayer.name())
           var childName = nameFormat.lookupName
@@ -161,7 +161,7 @@ function syncContent() {
           // Set the value of the text layer accordingly
           // Based on if it was given an index, otherwise return the first one
           var value = (values.length >= index) ? values[index - 1] : ''
-          var textValue = (value == '' ? 'N/A' : value)
+          var textValue = value || ''
 
           if (symbolLayer.isMemberOfClass(MSTextLayer)) {
             mutableOverrides.setObject_forKey(textValue, objectID)
@@ -205,7 +205,7 @@ function syncContent() {
       // Set the value of the text layer accordingly
       // Based on if it was given an index, otherwise return the first one
       var value = (values.length >= index) ? values[index - 1] : ''
-      var textValue = (value == '' ? 'N/A' : value)
+      var textValue = value || ''
 
       if (child.isMemberOfClass(MSTextLayer)) {
         child.setStringValue(textValue)
@@ -264,7 +264,7 @@ function getImageDataFromURL(url) {
 
   var image
 
-  if (!data){
+  if (!data) {
     print('Error fetching image')
     doc.showMessage("Error in fetching image URL.")
     image = NSImage.alloc().initByReferencingFile(plugin.urlForResourceNamed("Placeholder.png").path())
@@ -274,7 +274,7 @@ function getImageDataFromURL(url) {
 
 
   if (isCurrentVersionBefore('47')) {
-      return MSImageData.alloc().initWithImage_convertColorSpace(image, false)
+    return MSImageData.alloc().initWithImage_convertColorSpace(image, false)
   }
 
   return MSImageData.alloc().initWithImage(image)
@@ -359,7 +359,7 @@ function valuesForSheet(sheetName) {
     return null
   }
 
-  var sheet = sheetValues.find(function(sheet) {
+  var sheet = sheetValues.find(function (sheet) {
     return sheet.title.replace(/\s/g, '').toLowerCase() == sheetName.replace(/\s/g, '').toLowerCase()
   })
 
@@ -400,7 +400,7 @@ function fetchValuesForPage(sheetID, pageNumber) {
   try {
     var data = JSON.parse(dataString)
     return parseData(data)
-  } catch(e) {
+  } catch (e) {
     doc.showMessage("Failed to process the document data correctly")
     return null
   }
@@ -410,10 +410,10 @@ function fetchValuesForPage(sheetID, pageNumber) {
 function parseData(data) {
   var values = {}
 
-  data.feed.entry.forEach(function(entry) {
-    Object.keys(entry).filter(function(key) {
+  data.feed.entry.forEach(function (entry) {
+    Object.keys(entry).filter(function (key) {
       return key.indexOf('gsx$') == 0
-    }).forEach(function(key) {
+    }).forEach(function (key) {
       var newKey = key.substring(4)
       if (!(values.hasOwnProperty(newKey))) {
         values[newKey] = []
@@ -439,9 +439,9 @@ function compareVersion(a, b) {
   a = (a + '').replace(re, '').split('.');
   b = (b + '').replace(re, '').split('.');
   len = Math.min(a.length, b.length);
-  for( i = 0; i < len; i++ ) {
+  for (i = 0; i < len; i++) {
     cmp = parseInt(a[i], 10) - parseInt(b[i], 10);
-    if( cmp !== 0 ) {
+    if (cmp !== 0) {
       return cmp;
     }
   }
